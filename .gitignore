@@ -1,0 +1,21 @@
+## .NET Core
+bin/
+obj/
+/packages/
+*.user
+
+## IDEs and editors
+.vs/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln.docstates
+
+## Selenium
+*.log
+debug.log
+
+## SpecFlow
+*.feature.cs
+**/Features/**/*.cs
