@@ -5,5 +5,5 @@ Feature: System Availability
     So that I can quickly identify catastrophic failure
 
 Scenario: Navigate to a website
-    Given I navigate to "https://wessexdramas.org/"
+    Given I navigate to the home page 
     Then The Home page loads

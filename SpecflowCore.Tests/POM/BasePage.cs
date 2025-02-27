@@ -1,6 +1,7 @@
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using SpecflowCore.Tests.Support;
+using SpecflowCore.Tests.Fixtures;
 
 namespace SpecflowCore.Tests.POM
 {
@@ -10,12 +11,12 @@ namespace SpecflowCore.Tests.POM
         private readonly By _defaultSearchContext = By.TagName("body");
 
         // Change all protected to public
-        public IWebElement WaitForElement(By childLocator, int timeoutSeconds = 10)
+        public IWebElement WaitForElement(By childLocator, int timeoutSeconds = TestConfiguration.Timeouts.DefaultWaitSeconds)
         {
             return WaitForElement(childLocator, _defaultSearchContext, timeoutSeconds);
         }
 
-        public IWebElement WaitForElement(By childLocator, By searchContext, int timeoutSeconds = 10)
+        public IWebElement WaitForElement(By childLocator, By searchContext, int timeoutSeconds = TestConfiguration.Timeouts.DefaultWaitSeconds)
         {
             var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(timeoutSeconds));
             return wait.Until(d => {
@@ -24,12 +25,12 @@ namespace SpecflowCore.Tests.POM
             });
         }
 
-        public IWebElement WaitForElementToHaveText(By locator, string expectedText, int timeoutSeconds = 8)
+        public IWebElement WaitForElementToHaveText(By locator, string expectedText, int timeoutSeconds = TestConfiguration.Timeouts.DefaultWaitSeconds)
         {
             return WaitForElementToHaveText(locator, _defaultSearchContext, expectedText, timeoutSeconds);
         }
 
-        public IWebElement WaitForElementToHaveText(By locator, By searchContext, string expectedText, int timeoutSeconds = 8)
+        public IWebElement WaitForElementToHaveText(By locator, By searchContext, string expectedText, int timeoutSeconds = TestConfiguration.Timeouts.DefaultWaitSeconds)
         {
             try
             {
