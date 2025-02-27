@@ -19,3 +19,6 @@ debug.log
 ## SpecFlow
 *.feature.cs
 **/Features/**/*.cs
+
+## Test Results
+TestResults/

@@ -21,7 +21,7 @@ namespace SpecflowCore.Tests.StepDefinitions
         {
             // Wait until the title (as defined in the page model) exists
             // then assert that it contains the correct text
-            var element = _homePage.WaitForElementToHaveText(HomePage.PageTitle, "Welcome");
+            var element = _homePage.WaitForElementToHaveText(HomePage.PageTitle, "Welco  me");
             Assert.That(element, Is.Not.Null, "Home page did not load");
         }
     }
