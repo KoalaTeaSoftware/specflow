@@ -25,7 +25,7 @@ namespace SpecflowCore.Tests.StepDefinitions
                 Console.WriteLine($"Current URL: {_homePage.Driver.Url}");
                 Console.WriteLine($"Waiting for element '{HomePage.PageTitle}' to have text 'Welcome'");
                 
-                var element = _homePage.WaitForElementToHaveText(HomePage.PageTitle, "Welcome");
+                var element = _homePage.WaitForElementToHaveText(HomePage.PageTitle, "Wel come");
                 
                 if (element == null)
                 {

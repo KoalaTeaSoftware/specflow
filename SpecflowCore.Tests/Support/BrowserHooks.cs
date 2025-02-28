@@ -1,9 +1,9 @@
 using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
 using BoDi;
 using TechTalk.SpecFlow;
 using System;
 using System.IO;
+using System.Threading;
 
 namespace SpecflowCore.Tests.Support
 {
@@ -12,7 +12,6 @@ namespace SpecflowCore.Tests.Support
     {
         private readonly IObjectContainer _objectContainer;
         private readonly ScenarioContext _scenarioContext;
-        private IWebDriver? _driver;
 
         public BrowserHooks(IObjectContainer objectContainer, ScenarioContext scenarioContext)
         {
@@ -21,23 +20,18 @@ namespace SpecflowCore.Tests.Support
         }
 
         [BeforeScenario(Order = 0)]
-        public void CreateWebDriver()
+        public void SetupWebDriver()
         {
             try
             {
-                var options = new ChromeOptions();
-                options.AddArgument("--headless");
-                options.AddArgument("--start-maximized");
-                options.AddArgument("--window-size=1920,1080");
-                
-                _driver = new ChromeDriver(options);
-                _objectContainer.RegisterInstanceAs(_driver);
-                
-                Console.WriteLine("WebDriver created successfully");
+                // Get the driver from BrowserContext and register it with the container
+                var driver = BrowserContext.Instance.Driver;
+                _objectContainer.RegisterInstanceAs(driver);
+                Console.WriteLine("WebDriver registered successfully");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to create WebDriver: {ex.Message}");
+                Console.WriteLine($"Failed to setup WebDriver: {ex.Message}");
                 throw;
             }
         }
@@ -47,11 +41,10 @@ namespace SpecflowCore.Tests.Support
         {
             try
             {
-                if (_driver == null)
-                {
-                    Console.WriteLine("Cannot take screenshot - WebDriver is null");
-                    return;
-                }
+                var driver = BrowserContext.Instance.Driver;
+
+                // Give the page a moment to settle
+                Thread.Sleep(500);
 
                 // Always take a screenshot, whether the test passed or failed
                 var timestamp = DateTime.Now.ToString("HHmmss");
@@ -59,10 +52,13 @@ namespace SpecflowCore.Tests.Support
                 var screenshotPath = Path.Combine(TestRunContext.ScreenshotsPath, screenshotName);
 
                 // Ensure we're at the top of the page for consistent screenshots
-                ((IJavaScriptExecutor)_driver).ExecuteScript("window.scrollTo(0, 0)");
+                ((IJavaScriptExecutor)driver).ExecuteScript("window.scrollTo(0, 0)");
+                
+                // Give the page another moment to settle after scrolling
+                Thread.Sleep(500);
                 
                 Console.WriteLine($"Taking screenshot: {screenshotPath}");
-                var screenshot = ((ITakesScreenshot)_driver).GetScreenshot();
+                var screenshot = ((ITakesScreenshot)driver).GetScreenshot();
                 screenshot.SaveAsFile(screenshotPath);
                 
                 // Store the screenshot path in ScenarioContext for the report
@@ -78,23 +74,15 @@ namespace SpecflowCore.Tests.Support
         }
 
         [AfterScenario(Order = 99)] // Run last
-        public void CloseWebDriver()
+        public void CleanupWebDriver()
         {
             try
             {
-                if (_driver != null)
-                {
-                    _driver.Quit();
-                    _driver.Dispose();
-                    _driver = null;
-                    Console.WriteLine("WebDriver closed and disposed successfully");
-                }
+                BrowserContext.Instance.CleanupContext();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to close WebDriver: {ex.Message}");
-                // Ensure driver is nulled even if cleanup fails
-                _driver = null;
+                Console.WriteLine($"Failed to cleanup WebDriver: {ex.Message}");
             }
         }
     }

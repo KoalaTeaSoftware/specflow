@@ -1,5 +1,7 @@
 using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 using SpecflowCore.Tests.POM;
+using System;
 
 namespace SpecflowCore.Tests.Support
 {
@@ -34,7 +36,12 @@ namespace SpecflowCore.Tests.Support
             {
                 if (_driver == null)
                 {
-                    _driver = WebDriverFactory.CreateDriver();
+                    var options = new ChromeOptions();
+                    options.AddArgument("--start-maximized");
+                    options.AddArgument("--window-size=1920,1080");
+                    
+                    _driver = new ChromeDriver(options);
+                    Console.WriteLine("WebDriver created successfully");
                 }
                 return _driver;
             }
@@ -48,8 +55,38 @@ namespace SpecflowCore.Tests.Support
 
         public void CleanupContext()
         {
-            _driver?.Quit();
-            _driver = null;
+            if (_driver != null)
+            {
+                try
+                {
+                    _driver.Close(); // Close the current window first
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Warning: Failed to close browser window: {ex.Message}");
+                }
+
+                try
+                {
+                    _driver.Quit(); // Then quit the browser completely
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Warning: Failed to quit browser: {ex.Message}");
+                }
+
+                try
+                {
+                    _driver.Dispose(); // Finally dispose of resources
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Warning: Failed to dispose driver: {ex.Message}");
+                }
+
+                _driver = null;
+                Console.WriteLine("WebDriver closed and disposed successfully");
+            }
         }
     }
 }
