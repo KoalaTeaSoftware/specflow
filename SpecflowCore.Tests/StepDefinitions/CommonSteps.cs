@@ -10,29 +10,30 @@ namespace SpecflowCore.Tests.StepDefinitions
     [Binding]
     public class CommonSteps
     {
-        private readonly BasePage _currentPage;
+        private readonly HomePage _homePage;
 
         public CommonSteps()
         {
-            _currentPage = BrowserContext.Instance.GetPage<HomePage>(); // Default to HomePage, but this could be any page
+            _homePage = BrowserContext.Instance.GetPage<HomePage>();
         }
 
-        [Given(@"I navigate to the home page")]
-        public void GivenINavigateToTheHomePage()
+        [Given(@"The browser opens the home page")]
+        public void BrowserOpensHomePage()
         {
             BrowserContext.Instance.Driver.Navigate().GoToUrl(TestConfiguration.Urls.HomePage);
         }
 
         [Then(@"main heading is ""(.*)""")]
-        public void ThenMainHeadingIs(string expectedText)
+        public void MainHeadingIs(string expectedText)
         {
-            var mainHeading = _currentPage.WaitForElementToHaveText(By.CssSelector("h1"), expectedText);
-            
-            if (mainHeading == null)
+            var heading = _homePage.Driver.WaitForElementToHaveText(
+                BasePage.Elements.MainHeading, 
+                expectedText);
+
+            if (heading == null)
             {
-                // Get the actual text to include in the error message
-                var actualHeading = _currentPage.FindElement(By.CssSelector("h1"))?.Text ?? "no heading found";
-                Assert.Fail($"Expected main heading to be '{expectedText}' but found '{actualHeading}'");
+                var actualText = _homePage.Driver.GetText(BasePage.Elements.MainHeading) ?? "no heading found";
+                Assert.Fail($"Expected main heading to be '{expectedText}' but found '{actualText}'");
             }
         }
     }

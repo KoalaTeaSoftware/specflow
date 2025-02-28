@@ -5,5 +5,5 @@ Feature: System Availability
     So that I can quickly identify catastrophic failure
 
 Scenario: Navigate to a the system under test
-    Given I navigate to the home page 
+    Given The browser opens the home page 
     Then main heading is "Welcome"

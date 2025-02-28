@@ -1,22 +1,55 @@
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using SpecflowCore.Tests.Support;
-using SpecflowCore.Tests.Fixtures;
 using NUnit.Framework;
 
 namespace SpecflowCore.Tests.POM
 {
+    /// <summary>
+    /// Base class containing common element definitions and properties used across all pages.
+    /// Centralizes the locator strategies for common elements.
+    /// </summary>
     public abstract class BasePage
     {
+        /// <summary>
+        /// Gets the WebDriver instance from the BrowserContext
+        /// </summary>
         public IWebDriver Driver => BrowserContext.Instance.Driver;
-        private readonly By _defaultSearchContext = By.TagName("body");
 
-        public IWebElement WaitForElement(By childLocator, int timeoutSeconds = TestConfiguration.Timeouts.DefaultWaitSeconds)
+        /// <summary>
+        /// Common element locators used across pages
+        /// </summary>
+        public static class Elements
+        {
+            /// <summary>
+            /// Default search context for element location operations
+            /// </summary>
+            public static readonly By DefaultContext = By.TagName("body");
+
+            /// <summary>
+            /// Main heading of the page. Using h1 by default, but can be changed if site uses different heading hierarchy
+            /// </summary>
+            public static readonly By MainHeading = By.CssSelector("h1");
+
+            /// <summary>
+            /// Main navigation menu
+            /// </summary>
+            public static readonly By MainNav = By.CssSelector("nav.main-nav");
+
+            /// <summary>
+            /// Footer section
+            /// </summary>
+            public static readonly By Footer = By.TagName("footer");
+        }
+
+        private readonly By _defaultSearchContext = Elements.DefaultContext;
+
+        public IWebElement WaitForElement(By childLocator, int timeoutSeconds = 10)
         {
             return WaitForElement(childLocator, _defaultSearchContext, timeoutSeconds);
         }
 
-        public IWebElement WaitForElement(By childLocator, By searchContext, int timeoutSeconds = TestConfiguration.Timeouts.DefaultWaitSeconds)
+        public IWebElement WaitForElement(By childLocator, By searchContext, int timeoutSeconds = 10)
         {
             var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(timeoutSeconds));
             return wait.Until(d => {
@@ -25,12 +58,12 @@ namespace SpecflowCore.Tests.POM
             });
         }
 
-        public IWebElement WaitForElementToHaveText(By locator, string expectedText, int timeoutSeconds = TestConfiguration.Timeouts.DefaultWaitSeconds)
+        public IWebElement WaitForElementToHaveText(By locator, string expectedText, int timeoutSeconds = 10)
         {
             return WaitForElementToHaveText(locator, _defaultSearchContext, expectedText, timeoutSeconds);
         }
 
-        public IWebElement WaitForElementToHaveText(By locator, By searchContext, string expectedText, int timeoutSeconds = TestConfiguration.Timeouts.DefaultWaitSeconds)
+        public IWebElement WaitForElementToHaveText(By locator, By searchContext, string expectedText, int timeoutSeconds = 10)
         {
             try
             {
