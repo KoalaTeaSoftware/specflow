@@ -39,6 +39,12 @@ namespace SpecflowCore.Tests.Support
         [AfterScenario(Order = 0)] // Run before Hooks.AfterScenario
         public void CaptureScreenshot()
         {
+            // Only take screenshot if the test failed
+            if (_scenarioContext.TestError == null)
+            {
+                return;
+            }
+
             try
             {
                 var driver = BrowserContext.Instance.Driver;
@@ -46,7 +52,6 @@ namespace SpecflowCore.Tests.Support
                 // Give the page a moment to settle
                 Thread.Sleep(500);
 
-                // Always take a screenshot, whether the test passed or failed
                 var timestamp = DateTime.Now.ToString("HHmmss");
                 var screenshotName = $"{_scenarioContext.ScenarioInfo.Title.Replace(" ", "_")}_{timestamp}.png";
                 var screenshotPath = Path.Combine(TestRunContext.ScreenshotsPath, screenshotName);
@@ -57,19 +62,17 @@ namespace SpecflowCore.Tests.Support
                 // Give the page another moment to settle after scrolling
                 Thread.Sleep(500);
                 
-                Console.WriteLine($"Taking screenshot: {screenshotPath}");
+                Console.WriteLine($"Taking failure screenshot: {screenshotPath}");
                 var screenshot = ((ITakesScreenshot)driver).GetScreenshot();
                 screenshot.SaveAsFile(screenshotPath);
-                
-                // Store the screenshot path in ScenarioContext for the report
-                _scenarioContext["LastScreenshotPath"] = screenshotPath;
-                
                 Console.WriteLine($"Screenshot saved successfully to: {screenshotPath}");
+
+                // Store the screenshot path in the scenario context for reporting
+                _scenarioContext["LastScreenshotPath"] = screenshotPath;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to take screenshot: {ex.Message}");
-                // Don't throw as we want to continue with cleanup
+                Console.WriteLine($"Failed to capture screenshot: {ex.Message}");
             }
         }
 
@@ -79,6 +82,7 @@ namespace SpecflowCore.Tests.Support
             try
             {
                 BrowserContext.Instance.CleanupContext();
+                Console.WriteLine("WebDriver closed and disposed successfully");
             }
             catch (Exception ex)
             {
