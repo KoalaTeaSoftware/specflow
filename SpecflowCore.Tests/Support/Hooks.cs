@@ -1,51 +1,71 @@
 using System;
-using System.IO;
-using OpenQA.Selenium;
 using TechTalk.SpecFlow;
+using TechTalk.SpecFlow.Infrastructure;
 
 namespace SpecflowCore.Tests.Support
 {
     [Binding]
     public class Hooks
     {
-        private static readonly string TestResultsPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..", "TestResults");
+        private readonly ISpecFlowOutputHelper _outputHelper;
+        private readonly ScenarioContext _scenarioContext;
+        private readonly FeatureContext _featureContext;
+        private static readonly HtmlReportListener ReportListener = new HtmlReportListener();
+        private DateTime _scenarioStartTime;
 
-        [AfterScenario]
-        public void AfterScenario(ScenarioContext scenarioContext)
+        public Hooks(ISpecFlowOutputHelper outputHelper, ScenarioContext scenarioContext, FeatureContext featureContext)
         {
-            if (scenarioContext.TestError != null)
-            {
-                TakeScreenshot(scenarioContext);
-            }
-            BrowserContext.Instance.CleanupContext();
+            _outputHelper = outputHelper;
+            _scenarioContext = scenarioContext;
+            _featureContext = featureContext;
         }
 
-        private void TakeScreenshot(ScenarioContext scenarioContext)
+        [BeforeScenario(Order = 1)]
+        public void BeforeScenario()
         {
-            try
-            {
-                var driver = BrowserContext.Instance.Driver;
-                if (driver != null)
-                {
-                    var screenshot = ((ITakesScreenshot)driver).GetScreenshot();
-                    
-                    // Create Screenshots directory in the TestResults folder
-                    string screenshotDirectory = Path.Combine(TestResultsPath, "Screenshots");
-                    Directory.CreateDirectory(screenshotDirectory);
+            // Set the current ScenarioContext for TestRunContext
+            TestRunContext.CurrentScenarioContext = _scenarioContext;
 
-                    // Create a unique filename using timestamp and scenario title
-                    string fileName = $"{DateTime.Now:yyyyMMdd_HHmmss}_{scenarioContext.ScenarioInfo.Title.Replace(" ", "_")}.png";
-                    string filePath = Path.Combine(screenshotDirectory, fileName);
+            _scenarioStartTime = DateTime.Now;
+            var testName = $"{_featureContext.FeatureInfo.Title} - {_scenarioContext.ScenarioInfo.Title}";
+            ReportListener.OnTestStart(testName);
+            _outputHelper.WriteLine($"Starting test: {testName}");
+        }
 
-                    // Save the screenshot
-                    File.WriteAllBytes(filePath, screenshot.AsByteArray);
-                    Console.WriteLine($"Screenshot saved: {filePath}");
-                }
-            }
-            catch (Exception ex)
+        [AfterScenario(Order = 1)]
+        public void AfterScenario()
+        {
+            var testName = $"{_featureContext.FeatureInfo.Title} - {_scenarioContext.ScenarioInfo.Title}";
+            var duration = DateTime.Now - _scenarioStartTime;
+
+            if (_scenarioContext.TestError != null)
             {
-                Console.WriteLine($"Failed to take screenshot: {ex.Message}");
+                ReportListener.OnTestFail(
+                    testName,
+                    duration,
+                    _scenarioContext.TestError.Message,
+                    _scenarioContext.TestError.StackTrace ?? string.Empty,
+                    _scenarioContext.ContainsKey("LastScreenshotPath") 
+                        ? _scenarioContext["LastScreenshotPath"]?.ToString() ?? string.Empty 
+                        : string.Empty
+                );
+                _outputHelper.WriteLine($"Test failed: {testName}");
+                _outputHelper.WriteLine($"Error: {_scenarioContext.TestError.Message}");
             }
+            else
+            {
+                ReportListener.OnTestPass(testName, duration);
+                _outputHelper.WriteLine($"Test passed: {testName}");
+            }
+
+            // Clear the current ScenarioContext
+            TestRunContext.CurrentScenarioContext = null;
+        }
+
+        [AfterTestRun]
+        public static void AfterTestRun()
+        {
+            ReportListener.SaveReport();
         }
     }
 }

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://specflow.org/specflow-config.json",
+  "bindingCulture": {
+    "name": "en-us"
+  },
+  "language": {
+    "feature": "en-us"
+  },
+  "generator": {
+    "allowDebugGeneratedFiles": true,
+    "allowRowTests": true
+  },
+  "runtime": {
+    "missingOrPendingStepsOutcome": "Error"
+  },
+  "trace": {
+    "traceSuccessfulSteps": true,
+    "traceTimings": false,
+    "minTracedDuration": "0:0:0.1"
+  },
+  "livingDoc": {
+    "enabled": true,
+    "filePath": "TestResults/LivingDoc.html",
+    "intermediateFilePath": "TestResults/LivingDoc.json"
+  },
+  "stepAssemblies": [
+    {
+      "assembly": "SpecflowCore.Tests"
+    }
+  ]
+}

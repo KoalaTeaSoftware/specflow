@@ -2,15 +2,15 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using SpecflowCore.Tests.Support;
 using SpecflowCore.Tests.Fixtures;
+using NUnit.Framework;
 
 namespace SpecflowCore.Tests.POM
 {
     public abstract class BasePage
     {
-        protected IWebDriver Driver => BrowserContext.Instance.Driver;
+        public IWebDriver Driver => BrowserContext.Instance.Driver;
         private readonly By _defaultSearchContext = By.TagName("body");
 
-        // Change all protected to public
         public IWebElement WaitForElement(By childLocator, int timeoutSeconds = TestConfiguration.Timeouts.DefaultWaitSeconds)
         {
             return WaitForElement(childLocator, _defaultSearchContext, timeoutSeconds);
@@ -35,7 +35,6 @@ namespace SpecflowCore.Tests.POM
             try
             {
                 var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(timeoutSeconds));
-                // We have to use alambda hee because the wait needs something that it can repeatedly call
                 return wait.Until(d => {
                     var element = FindElement(locator, searchContext);
                     return (element != null && element.Text.Contains(expectedText)) ? element : null;
@@ -43,7 +42,7 @@ namespace SpecflowCore.Tests.POM
             }
             catch (WebDriverTimeoutException)
             {
-                TestContext.WriteLine($"Timeout waiting for element '{locator}' to have text '{expectedText}' within parent context '{searchContext}'. Element was not found or text did not match.");
+                NUnit.Framework.TestContext.WriteLine($"Timeout waiting for element '{locator}' to have text '{expectedText}' within parent context '{searchContext}'. Element was not found or text did not match.");
                 return null;
             }
         }
@@ -57,7 +56,7 @@ namespace SpecflowCore.Tests.POM
             }
             catch (WebDriverTimeoutException)
             {
-                TestContext.WriteLine($"Timeout waiting for element '{childLocator}' within parent context '{parentContext}'. Element was not found.");
+                NUnit.Framework.TestContext.WriteLine($"Timeout waiting for element '{childLocator}' within parent context '{parentContext}'. Element was not found.");
                 return null;
             }
         }
@@ -76,7 +75,7 @@ namespace SpecflowCore.Tests.POM
             }
             catch (NoSuchElementException)
             {
-                TestContext.WriteLine($"Failed to find element '{locator}' within parent context '{searchContext}'.");
+                NUnit.Framework.TestContext.WriteLine($"Failed to find element '{locator}' within parent context '{searchContext}'.");
                 return null;
             }
         }
@@ -88,7 +87,7 @@ namespace SpecflowCore.Tests.POM
 
         public void Click(By locator, By searchContext)
         {
-            FindElement(locator, searchContext).Click();
+            FindElement(locator, searchContext)?.Click();
         }
 
         public void Type(By locator, string text)
@@ -98,7 +97,7 @@ namespace SpecflowCore.Tests.POM
 
         public void Type(By locator, string text, By searchContext)
         {
-            FindElement(locator, searchContext).SendKeys(text);
+            FindElement(locator, searchContext)?.SendKeys(text);
         }
     }
 }

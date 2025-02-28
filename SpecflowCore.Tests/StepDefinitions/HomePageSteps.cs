@@ -3,6 +3,7 @@ using OpenQA.Selenium;
 using SpecflowCore.Tests.POM;
 using SpecflowCore.Tests.Support;
 using TechTalk.SpecFlow;
+using System;
 
 namespace SpecflowCore.Tests.StepDefinitions
 {
@@ -19,10 +20,26 @@ namespace SpecflowCore.Tests.StepDefinitions
         [Then(@"[Tt]he [Hh]ome page loads")]
         public void ThenTheHomePageLoads()
         {
-            // Wait until the title (as defined in the page model) exists
-            // then assert that it contains the correct text
-            var element = _homePage.WaitForElementToHaveText(HomePage.PageTitle, "Welco  me");
-            Assert.That(element, Is.Not.Null, "Home page did not load");
+            try
+            {
+                Console.WriteLine($"Current URL: {_homePage.Driver.Url}");
+                Console.WriteLine($"Waiting for element '{HomePage.PageTitle}' to have text 'Welcome'");
+                
+                var element = _homePage.WaitForElementToHaveText(HomePage.PageTitle, "Welcome");
+                
+                if (element == null)
+                {
+                    var pageSource = _homePage.Driver.PageSource;
+                    Console.WriteLine($"Page source: {pageSource}");
+                }
+                
+                Assert.That(element, Is.Not.Null, "Home page did not load - title element not found");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in ThenTheHomePageLoads: {ex.Message}");
+                throw;
+            }
         }
     }
 }
