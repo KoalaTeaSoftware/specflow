@@ -6,4 +6,4 @@ Feature: System Availability
 
 Scenario: Navigate to a the system under test
     Given I navigate to the home page 
-    Then The Home page loads
+    Then main heading is "Welcome"
