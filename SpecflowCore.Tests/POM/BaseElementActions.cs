@@ -52,11 +52,46 @@ namespace SpecflowCore.Tests.POM
         }
 
         /// <summary>
+        /// Clicks a link with specific text, optionally within a search context
+        /// </summary>
+        /// <returns>True if click was successful, false otherwise</returns>
+        public static bool ClickLinkWithText(this IWebDriver driver, string linkText, By? searchContext = null)
+        {
+            searchContext ??= BasePage.Elements.DefaultContext;
+            var element = driver.FindElement(By.LinkText(linkText), searchContext);
+            if (element != null)
+            {
+                element.Click();
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Clicks a link containing specific text, optionally within a search context
+        /// </summary>
+        /// <returns>True if click was successful, false otherwise</returns>
+        public static bool ClickLinkContainingText(this IWebDriver driver, string partialLinkText, By? searchContext = null)
+        {
+            searchContext ??= BasePage.Elements.DefaultContext;
+            var element = driver.FindElement(By.PartialLinkText(partialLinkText), searchContext);
+            if (element != null)
+            {
+                element.Click();
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Gets the text of an element if it exists
         /// </summary>
-        public static string GetText(this IWebDriver driver, By locator, By? searchContext = null)
+        /// <returns>The element text or null if element not found</returns>
+        public static string? GetText(this IWebDriver driver, By locator, By? searchContext = null)
         {
-            return driver.FindElement(locator, searchContext)?.Text;
+            searchContext ??= BasePage.Elements.DefaultContext;
+            var element = driver.FindElement(locator, searchContext);
+            return element?.Text;
         }
     }
 }
