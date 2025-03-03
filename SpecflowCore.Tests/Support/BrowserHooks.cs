@@ -1,5 +1,7 @@
 using TechTalk.SpecFlow;
 using System;
+using OpenQA.Selenium;
+using System.IO;
 using SpecflowCore.Tests.Support;
 
 namespace SpecflowCore.Tests.Support
@@ -7,7 +9,14 @@ namespace SpecflowCore.Tests.Support
     [Binding]
     public class BrowserHooks
     {
-        [AfterScenario]
+        private readonly ScenarioContext _scenarioContext;
+
+        public BrowserHooks(ScenarioContext scenarioContext)
+        {
+            _scenarioContext = scenarioContext;
+        }
+
+        [AfterScenario(Order = 1)]
         public void AfterScenario()
         {
             try

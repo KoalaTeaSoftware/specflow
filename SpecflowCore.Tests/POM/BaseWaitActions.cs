@@ -1,6 +1,7 @@
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using SpecflowCore.Tests.Fixtures;
+using SpecflowCore.Tests.Support;
 using NUnit.Framework;
 
 namespace SpecflowCore.Tests.POM
@@ -32,7 +33,8 @@ namespace SpecflowCore.Tests.POM
             }
             catch (WebDriverTimeoutException)
             {
-                TestContext.WriteLine($"Timeout waiting for element '{locator}' within parent context '{searchContext ?? BasePageLocators.Elements.DefaultContext}'.");
+                var path = BrowserContext.Instance.CaptureFailureScreenshot($"element_not_found_{locator.ToString().Replace('/', '_')}");
+                TestContext.WriteLine($"Timeout waiting for element '{locator}' within parent context '{searchContext ?? BasePageLocators.Elements.DefaultContext}'. Screenshot: {path}");
                 return null;
             }
         }
@@ -62,7 +64,8 @@ namespace SpecflowCore.Tests.POM
             }
             catch (WebDriverTimeoutException)
             {
-                TestContext.WriteLine($"Timeout waiting for element '{locator}' to have text '{expectedText}'.");
+                var path = BrowserContext.Instance.CaptureFailureScreenshot($"element_wrong_text_{locator.ToString().Replace('/', '_')}");
+                TestContext.WriteLine($"Timeout waiting for element '{locator}' to have text '{expectedText}'. Screenshot: {path}");
                 return null;
             }
         }

@@ -1,5 +1,7 @@
 using OpenQA.Selenium;
 using System.Text.RegularExpressions;
+using SpecflowCore.Tests.Support;
+using NUnit.Framework;
 
 namespace SpecflowCore.Tests.POM
 {
@@ -51,6 +53,8 @@ namespace SpecflowCore.Tests.POM
 
             // If no matching window found, switch back to original
             driver.SwitchTo().Window(originalWindow);
+            var path = BrowserContext.Instance.CaptureFailureScreenshot($"window_not_found_{titlePattern ?? "any"}_{urlPattern ?? "any"}");
+            TestContext.WriteLine($"Could not find window matching title '{titlePattern}' and URL '{urlPattern}'. Screenshot: {path}");
             return false;
         }
 
@@ -74,6 +78,8 @@ namespace SpecflowCore.Tests.POM
                 Thread.Sleep(500);
             }
 
+            var path = BrowserContext.Instance.CaptureFailureScreenshot("new_window_not_found");
+            TestContext.WriteLine($"No new window appeared after {timeoutSeconds} seconds. Screenshot: {path}");
             return false;
         }
 

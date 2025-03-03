@@ -1,6 +1,8 @@
 using OpenQA.Selenium;
 using System.Collections.Generic;
 using System.Linq;
+using SpecflowCore.Tests.Support;
+using NUnit.Framework;
 
 namespace SpecflowCore.Tests.POM
 {
@@ -71,6 +73,8 @@ namespace SpecflowCore.Tests.POM
 
             if (link == null)
             {
+                var path = BrowserContext.Instance.CaptureFailureScreenshot($"link_with_text_not_found_{linkText}");
+                TestContext.WriteLine($"Could not find link with text '{linkText}'. Screenshot: {path}");
                 return false;
             }
 
@@ -92,6 +96,8 @@ namespace SpecflowCore.Tests.POM
 
             if (link == null)
             {
+                var path = BrowserContext.Instance.CaptureFailureScreenshot($"link_containing_text_not_found_{partialText}");
+                TestContext.WriteLine($"Could not find link containing text '{partialText}'. Screenshot: {path}");
                 return false;
             }
 
@@ -104,7 +110,20 @@ namespace SpecflowCore.Tests.POM
         /// </summary>
         public static void Click(this IWebDriver driver, By locator, By? searchContext = null)
         {
-            driver.FindElement(locator, searchContext)?.Click();
+            try
+            {
+                driver.FindElement(locator, searchContext)?.Click();
+            }
+            catch (ElementClickInterceptedException ex)
+            {
+                var path = BrowserContext.Instance.CaptureFailureScreenshot($"click_intercepted_{locator.ToString().Replace('/', '_')}");
+                throw new ElementClickInterceptedException($"Element click was intercepted. Screenshot: {path}", ex);
+            }
+            catch (ElementNotInteractableException ex)
+            {
+                var path = BrowserContext.Instance.CaptureFailureScreenshot($"element_not_interactable_{locator.ToString().Replace('/', '_')}");
+                throw new ElementNotInteractableException($"Element is not interactable. Screenshot: {path}", ex);
+            }
         }
 
         /// <summary>
@@ -112,7 +131,15 @@ namespace SpecflowCore.Tests.POM
         /// </summary>
         public static void Type(this IWebDriver driver, By locator, string text, By? searchContext = null)
         {
-            driver.FindElement(locator, searchContext)?.SendKeys(text);
+            try
+            {
+                driver.FindElement(locator, searchContext)?.SendKeys(text);
+            }
+            catch (ElementNotInteractableException ex)
+            {
+                var path = BrowserContext.Instance.CaptureFailureScreenshot($"cannot_type_{locator.ToString().Replace('/', '_')}");
+                throw new ElementNotInteractableException($"Cannot type into element. Screenshot: {path}", ex);
+            }
         }
     }
 }

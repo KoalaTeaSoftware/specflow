@@ -1,3 +1,4 @@
+@acceptance @main_navigation
 Feature: Main Navigation
     As a user
     I want to use the main navigation
@@ -12,4 +13,4 @@ Scenario: Navigation links lead to correct pages
         | Welcome     | Welcome     |
         | Feature Films      | Thomas Hardy's Wessex Dramas          |
         | Podcasts     | Dramatic Podcast Releases     |
-        | About   | About  |
+        | About   | About |

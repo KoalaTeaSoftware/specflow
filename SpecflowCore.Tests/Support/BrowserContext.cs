@@ -1,5 +1,7 @@
 using OpenQA.Selenium;
 using SpecflowCore.Tests.POM;
+using System;
+using System.IO;
 
 namespace SpecflowCore.Tests.Support
 {
@@ -40,6 +42,16 @@ namespace SpecflowCore.Tests.Support
         {
             Driver?.Quit();
             Driver = WebDriverFactory.CreateDriver();
+        }
+
+        public string CaptureFailureScreenshot(string failureContext)
+        {
+            var screenshot = ((ITakesScreenshot)Driver).GetScreenshot();
+            var fileName = $"{failureContext}_{DateTime.Now:yyyyMMdd_HHmmss}.png";
+            var path = Path.Combine(TestRunContext.ScreenshotsPath, fileName);
+            screenshot.SaveAsFile(path);
+            TestRunContext.CurrentScenarioContext["LastScreenshotPath"] = path;
+            return path;
         }
 
         public void Dispose()

@@ -5,11 +5,13 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
 using SpecflowCore.Tests.POM;
 using SpecflowCore.Tests.Support;
 using SpecflowCore.Tests.Fixtures;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
+using System.IO;
 
 namespace SpecflowCore.Tests.StepDefinitions
 {
@@ -87,11 +89,18 @@ namespace SpecflowCore.Tests.StepDefinitions
                 try
                 {
                     var heading = _driver.FindElement(By.CssSelector("h1, h2, h3, h4, h5, h6"));
-                    return heading.Text.Contains(expectedHeading, StringComparison.OrdinalIgnoreCase);
+                    var headingMatches = heading.Text.Contains(expectedHeading, StringComparison.OrdinalIgnoreCase);
+                    if (!headingMatches)
+                    {
+                        var path = BrowserContext.Instance.CaptureFailureScreenshot($"{link.Text}_wrong_heading");
+                        throw new Exception($"Navigation verification failed:\nLink [{link.Text}] page heading expected [{expectedHeading}] but got [{heading.Text}]\nFailure screenshot: {path}");
+                    }
+                    return headingMatches;
                 }
                 catch (NoSuchElementException)
                 {
-                    return false;
+                    var path = BrowserContext.Instance.CaptureFailureScreenshot($"{link.Text}_heading_not_found");
+                    throw new Exception($"Navigation verification failed:\nLink [{link.Text}] page heading expected [{expectedHeading}] but no heading was found\nFailure screenshot: {path}");
                 }
             }
 
@@ -101,11 +110,18 @@ namespace SpecflowCore.Tests.StepDefinitions
             try
             {
                 var heading = _driver.FindElement(By.CssSelector("h1, h2, h3, h4, h5, h6"));
-                return heading.Text.Contains(expectedHeading, StringComparison.OrdinalIgnoreCase);
+                var headingMatches = heading.Text.Contains(expectedHeading, StringComparison.OrdinalIgnoreCase);
+                if (!headingMatches)
+                {
+                    var path = BrowserContext.Instance.CaptureFailureScreenshot($"{link.Text}_wrong_heading");
+                    throw new Exception($"Navigation verification failed:\nLink [{link.Text}] page heading expected [{expectedHeading}] but got [{heading.Text}]\nFailure screenshot: {path}");
+                }
+                return headingMatches;
             }
             catch (NoSuchElementException)
             {
-                return false;
+                var path = BrowserContext.Instance.CaptureFailureScreenshot($"{link.Text}_no_heading_after_nav");
+                throw new Exception($"Navigation verification failed:\nLink [{link.Text}] page heading expected [{expectedHeading}] but no heading was found\nFailure screenshot: {path}");
             }
         }
 
@@ -143,7 +159,8 @@ namespace SpecflowCore.Tests.StepDefinitions
             // Report all failures at once
             if (failures.Any())
             {
-                Assert.Fail("Navigation link check failed:\n" + string.Join("\n", failures));
+                var path = BrowserContext.Instance.CaptureFailureScreenshot("navigation_links_mismatch");
+                Assert.Fail($"Navigation link check failed:\n{string.Join("\n", failures)}\nFailure screenshot: {path}");
             }
         }
 
@@ -211,7 +228,9 @@ namespace SpecflowCore.Tests.StepDefinitions
                 var link = links.FirstOrDefault(l => l.Text.Contains(linkText, StringComparison.OrdinalIgnoreCase));
                 if (link == null)
                 {
-                    failures.Add($"Link '{linkText}' not found");
+                    var path = BrowserContext.Instance.CaptureFailureScreenshot($"link_not_found_{linkText}");
+                    var availableLinks = string.Join(", ", links.Select(l => $"'{l.Text}'"));
+                    failures.Add($"Link '{linkText}' not found. Available links: {availableLinks}. Screenshot: {path}");
                     continue;
                 }
 
@@ -231,7 +250,7 @@ namespace SpecflowCore.Tests.StepDefinitions
 
             if (failures.Any())
             {
-                throw new Exception($"Navigation validation failed:\n{string.Join("\n", failures)}");
+                throw new Exception($"Navigation verification failed:\n{string.Join("\n", failures)}");
             }
         }
     }

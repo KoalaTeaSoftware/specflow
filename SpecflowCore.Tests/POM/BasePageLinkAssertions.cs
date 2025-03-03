@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using SpecflowCore.Tests.Fixtures;
+using SpecflowCore.Tests.Support;
 
 namespace SpecflowCore.Tests.POM
 {
@@ -28,7 +29,8 @@ namespace SpecflowCore.Tests.POM
             var clickResult = driver.ClickLinkWithText(linkText, searchContext);
             if (!clickResult)
             {
-                TestContext.WriteLine($"Could not find link with text '{linkText}'");
+                var path = BrowserContext.Instance.CaptureFailureScreenshot($"link_not_found_{linkText}");
+                TestContext.WriteLine($"Could not find link with text '{linkText}'. Screenshot: {path}");
                 return false;
             }
 
@@ -49,7 +51,8 @@ namespace SpecflowCore.Tests.POM
             }
             catch (WebDriverTimeoutException)
             {
-                TestContext.WriteLine($"Link '{linkText}' did not navigate to a new page");
+                var path = BrowserContext.Instance.CaptureFailureScreenshot($"link_no_navigation_{linkText}");
+                TestContext.WriteLine($"Link '{linkText}' did not navigate to a new page. Screenshot: {path}");
                 return false;
             }
 
@@ -119,7 +122,8 @@ namespace SpecflowCore.Tests.POM
 
             if (!links.Any())
             {
-                TestContext.WriteLine($"No links found matching pattern '{pattern}'");
+                var path = BrowserContext.Instance.CaptureFailureScreenshot($"no_links_matching_{pattern}");
+                TestContext.WriteLine($"No links found matching pattern '{pattern}'. Screenshot: {path}");
                 return false;
             }
 

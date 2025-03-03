@@ -7,13 +7,13 @@ Feature: Main Navigation Smoke Tests
 Background:
     Given The browser opens the home page
 
-Scenario: Main navigation links are accessible
-    Then all main navigation links return HTTP 200
-
-Scenario: Main navigation contains exactly the expected links
-    Then the main navigation contains only these links:
+Scenario: user verifies the main navigation
+    Then The main heading is "Welcome"
+    And the main navigation contains only these links:
         | Link Text     |
         | Welcome         |
         | Feature Films        |
         | Podcasts     |
         | About   |
+        | Contact  |
+    And all main navigation links return HTTP 200
