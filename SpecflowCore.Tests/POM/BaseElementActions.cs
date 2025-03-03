@@ -1,38 +1,102 @@
 using OpenQA.Selenium;
-using NUnit.Framework;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SpecflowCore.Tests.POM
 {
-    /// <summary>
-    /// Provides basic element interaction methods that can be used across all pages.
-    /// These are the fundamental actions that don't involve waiting or complex logic.
-    /// </summary>
     public static class BaseElementActions
     {
         /// <summary>
-        /// Finds an element within a specified search context
+        /// Finds an element within an optional search context
         /// </summary>
-        /// <param name="driver">The WebDriver instance</param>
-        /// <param name="locator">The locator for the target element</param>
-        /// <param name="searchContext">Optional context to search within, defaults to body</param>
-        /// <returns>The found element or null if not found</returns>
-        public static IWebElement? FindElement(this IWebDriver driver, By locator, By? searchContext = null)
+        public static IWebElement FindElement(
+            this IWebDriver driver,
+            By locator,
+            By? searchContext = null)
         {
-            try
+            if (searchContext == null)
             {
-                if (searchContext == null)
-                {
-                    return driver.FindElement(locator);
-                }
+                // Uses driver.FindElement directly because this is our base implementation
+                return driver.FindElement(locator);
+            }
 
-                var context = driver.FindElement(searchContext);
-                return context?.FindElement(locator);
-            }
-            catch (NoSuchElementException)
+            // Uses context.FindElement directly because this is our base implementation
+            var context = driver.FindElement(searchContext);
+            return context.FindElement(locator);
+        }
+
+        /// <summary>
+        /// Finds all elements matching a locator within an optional search context
+        /// </summary>
+        public static IReadOnlyCollection<IWebElement> FindElements(
+            this IWebDriver driver,
+            By locator,
+            By? searchContext = null)
+        {
+            if (searchContext == null)
             {
-                TestContext.WriteLine($"Failed to find element '{locator}' within parent context '{searchContext ?? BasePage.Elements.DefaultContext}'.");
-                return null;
+                // Uses driver.FindElements directly because this is our base implementation
+                return driver.FindElements(locator);
             }
+
+            // Uses context.FindElements directly because this is our base implementation
+            var context = driver.FindElement(searchContext);
+            return context.FindElements(locator);
+        }
+
+        /// <summary>
+        /// Gets text of an element if it exists, null otherwise
+        /// </summary>
+        public static string? GetText(
+            this IWebDriver driver,
+            By locator,
+            By? searchContext = null)
+        {
+            // Uses our extension method for consistency
+            var element = driver.FindElement(locator, searchContext);
+            return element?.Text;
+        }
+
+        /// <summary>
+        /// Clicks a link with specific text within an optional search context
+        /// </summary>
+        public static bool ClickLinkWithText(
+            this IWebDriver driver,
+            string linkText,
+            By? searchContext = null)
+        {
+            // Uses our extension method for consistency
+            var links = driver.FindElements(By.TagName("a"), searchContext);
+            var link = links.FirstOrDefault(l => l.Text.Contains(linkText));
+
+            if (link == null)
+            {
+                return false;
+            }
+
+            link.Click();
+            return true;
+        }
+
+        /// <summary>
+        /// Clicks a link containing specific text within an optional search context
+        /// </summary>
+        public static bool ClickLinkContainingText(
+            this IWebDriver driver,
+            string partialText,
+            By? searchContext = null)
+        {
+            // Uses our extension method for consistency
+            var links = driver.FindElements(By.TagName("a"), searchContext);
+            var link = links.FirstOrDefault(l => l.Text.Contains(partialText));
+
+            if (link == null)
+            {
+                return false;
+            }
+
+            link.Click();
+            return true;
         }
 
         /// <summary>
@@ -49,49 +113,6 @@ namespace SpecflowCore.Tests.POM
         public static void Type(this IWebDriver driver, By locator, string text, By? searchContext = null)
         {
             driver.FindElement(locator, searchContext)?.SendKeys(text);
-        }
-
-        /// <summary>
-        /// Clicks a link with specific text, optionally within a search context
-        /// </summary>
-        /// <returns>True if click was successful, false otherwise</returns>
-        public static bool ClickLinkWithText(this IWebDriver driver, string linkText, By? searchContext = null)
-        {
-            searchContext ??= BasePage.Elements.DefaultContext;
-            var element = driver.FindElement(By.LinkText(linkText), searchContext);
-            if (element != null)
-            {
-                element.Click();
-                return true;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Clicks a link containing specific text, optionally within a search context
-        /// </summary>
-        /// <returns>True if click was successful, false otherwise</returns>
-        public static bool ClickLinkContainingText(this IWebDriver driver, string partialLinkText, By? searchContext = null)
-        {
-            searchContext ??= BasePage.Elements.DefaultContext;
-            var element = driver.FindElement(By.PartialLinkText(partialLinkText), searchContext);
-            if (element != null)
-            {
-                element.Click();
-                return true;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Gets the text of an element if it exists
-        /// </summary>
-        /// <returns>The element text or null if element not found</returns>
-        public static string? GetText(this IWebDriver driver, By locator, By? searchContext = null)
-        {
-            searchContext ??= BasePage.Elements.DefaultContext;
-            var element = driver.FindElement(locator, searchContext);
-            return element?.Text;
         }
     }
 }

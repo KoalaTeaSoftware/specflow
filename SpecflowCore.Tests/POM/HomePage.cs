@@ -1,13 +1,16 @@
 using OpenQA.Selenium;
+using SpecflowCore.Tests.Fixtures;
 
 namespace SpecflowCore.Tests.POM
 {
     /// <summary>
     /// Defines the structure and elements specific to the Home page.
     /// </summary>
-    public class HomePage : BasePage
+    public static class HomePage
     {
-        // Currently empty as we're using base page elements
-        // Add page-specific element definitions here when needed
+        public static void NavigateToHomePage(this IWebDriver driver)
+        {
+            driver.Navigate().GoToUrl(TestConfiguration.Urls.BaseUrl);
+        }
     }
 }

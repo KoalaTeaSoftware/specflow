@@ -32,7 +32,7 @@ namespace SpecflowCore.Tests.POM
             }
             catch (WebDriverTimeoutException)
             {
-                TestContext.WriteLine($"Timeout waiting for element '{locator}' within parent context '{searchContext ?? BasePage.Elements.DefaultContext}'.");
+                TestContext.WriteLine($"Timeout waiting for element '{locator}' within parent context '{searchContext ?? BasePageLocators.Elements.DefaultContext}'.");
                 return null;
             }
         }
@@ -48,20 +48,21 @@ namespace SpecflowCore.Tests.POM
             By? searchContext = null,
             int timeoutSeconds = TestConfiguration.Timeouts.DefaultWaitSeconds)
         {
+            var element = WaitForElement(driver, locator, searchContext, timeoutSeconds);
+            if (element == null) return null;
+
+            var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(timeoutSeconds));
             try
             {
-                var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(timeoutSeconds));
                 return wait.Until(d =>
                 {
-                    var element = d.FindElement(locator, searchContext);
-                    return (element != null && element.Text.Contains(expectedText)) ? element : null;
+                    var text = element.Text;
+                    return text.Contains(expectedText) ? element : null;
                 });
             }
             catch (WebDriverTimeoutException)
             {
-                var element = driver.FindElement(locator, searchContext);
-                var actualText = element?.Text ?? "no text found";
-                TestContext.WriteLine($"Timeout waiting for element '{locator}' to have text '{expectedText}'. Actual text was '{actualText}'");
+                TestContext.WriteLine($"Timeout waiting for element '{locator}' to have text '{expectedText}'.");
                 return null;
             }
         }

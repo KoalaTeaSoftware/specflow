@@ -1,9 +1,9 @@
-using OpenQA.Selenium;
-using SpecflowCore.Tests.Support;
 using TechTalk.SpecFlow;
+using OpenQA.Selenium;
+using SpecflowCore.Tests.POM;
+using SpecflowCore.Tests.Support;
 using SpecflowCore.Tests.Fixtures;
 using NUnit.Framework;
-using SpecflowCore.Tests.POM;
 using System.Text.RegularExpressions;
 using FluentAssertions;
 
@@ -12,13 +12,23 @@ namespace SpecflowCore.Tests.StepDefinitions
     [Binding]
     public class CommonSteps
     {
-        private readonly HomePage _homePage;
         private readonly IWebDriver _driver;
 
         public CommonSteps()
         {
-            _homePage = BrowserContext.Instance.GetPage<HomePage>();
             _driver = BrowserContext.Instance.Driver;
+        }
+
+        [BeforeScenario]
+        public void BeforeScenario()
+        {
+            BrowserContext.Instance.Reset();
+        }
+
+        [AfterScenario]
+        public void AfterScenario()
+        {
+            // Clean up will happen in Reset() before next scenario
         }
 
         [Given(@"The browser opens the home page")]
@@ -30,13 +40,13 @@ namespace SpecflowCore.Tests.StepDefinitions
         [Then(@"The main heading is ""(.*)""")]
         public void TheMainHeadingIs(string expectedText)
         {
-            var heading = _homePage.Driver.WaitForElementToHaveText(
-                BasePage.Elements.MainHeading, 
+            var heading = BrowserContext.Instance.Driver.WaitForElementToHaveText(
+                BasePageLocators.Elements.MainHeading, 
                 expectedText);
 
             if (heading == null)
             {
-                var actualText = _homePage.Driver.GetText(BasePage.Elements.MainHeading) ?? "no heading found";
+                var actualText = BrowserContext.Instance.Driver.GetText(BasePageLocators.Elements.MainHeading) ?? "no heading found";
                 Assert.Fail($"Expected main heading to be '{expectedText}' but found '{actualText}'");
             }
         }

@@ -10,13 +10,17 @@ namespace SpecflowCore.Tests.StepDefinitions
     [Binding]
     public class HomePageSteps
     {
-        private readonly HomePage _homePage;
+        private readonly IWebDriver _driver;
 
         public HomePageSteps()
         {
-            _homePage = BrowserContext.Instance.GetPage<HomePage>();
+            _driver = BrowserContext.Instance.Driver;
         }
 
-       
+        [Given(@"I am on the home page")]
+        public void GivenIAmOnTheHomePage()
+        {
+            HomePage.NavigateToHomePage(_driver);
+        }
     }
 }

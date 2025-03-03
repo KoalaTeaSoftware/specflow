@@ -1,19 +1,22 @@
 using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
 using SpecflowCore.Tests.POM;
-using System;
 
 namespace SpecflowCore.Tests.Support
 {
-    public class BrowserContext
+    /// <summary>
+    /// Singleton class to manage browser context
+    /// </summary>
+    public class BrowserContext : IDisposable
     {
-        private static BrowserContext? _instance;
-        private static readonly object _lock = new object();
-        
-        private IWebDriver? _driver;
-        private BasePage? _currentPage;
+        private static BrowserContext _instance;
+        private static readonly object Lock = new object();
 
-        private BrowserContext() { }
+        private BrowserContext()
+        {
+            Driver = WebDriverFactory.CreateDriver();
+        }
+
+        public IWebDriver Driver { get; private set; }
 
         public static BrowserContext Instance
         {
@@ -21,72 +24,30 @@ namespace SpecflowCore.Tests.Support
             {
                 if (_instance == null)
                 {
-                    lock (_lock)
+                    lock (Lock)
                     {
-                        _instance ??= new BrowserContext();
+                        if (_instance == null)
+                        {
+                            _instance = new BrowserContext();
+                        }
                     }
                 }
                 return _instance;
             }
         }
 
-        public IWebDriver Driver
+        public void Reset()
         {
-            get
-            {
-                if (_driver == null)
-                {
-                    var options = new ChromeOptions();
-                    options.AddArgument("--start-maximized");
-                    options.AddArgument("--window-size=1920,1080");
-                    
-                    _driver = new ChromeDriver(options);
-                    Console.WriteLine("WebDriver created successfully");
-                }
-                return _driver;
-            }
+            Driver?.Quit();
+            Driver = WebDriverFactory.CreateDriver();
         }
 
-        public T GetPage<T>() where T : BasePage, new()
+        public void Dispose()
         {
-            _currentPage = new T();
-            return (T)_currentPage;
-        }
-
-        public void CleanupContext()
-        {
-            if (_driver != null)
-            {
-                try
-                {
-                    _driver.Close(); // Close the current window first
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Warning: Failed to close browser window: {ex.Message}");
-                }
-
-                try
-                {
-                    _driver.Quit(); // Then quit the browser completely
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Warning: Failed to quit browser: {ex.Message}");
-                }
-
-                try
-                {
-                    _driver.Dispose(); // Finally dispose of resources
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Warning: Failed to dispose driver: {ex.Message}");
-                }
-
-                _driver = null;
-                Console.WriteLine("WebDriver closed and disposed successfully");
-            }
+            Driver?.Quit();
+            Driver?.Dispose();
+            Driver = null;
+            _instance = null;
         }
     }
 }
