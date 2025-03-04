@@ -14,17 +14,14 @@ namespace SpecflowCore.Tests.POM
         public static IWebElement FindElement(
             this IWebDriver driver,
             By locator,
-            By? searchContext = null)
+            IWebElement? searchContext = null)
         {
             if (searchContext == null)
             {
-                // Uses driver.FindElement directly because this is our base implementation
                 return driver.FindElement(locator);
             }
 
-            // Uses context.FindElement directly because this is our base implementation
-            var context = driver.FindElement(searchContext);
-            return context.FindElement(locator);
+            return searchContext.FindElement(locator);
         }
 
         /// <summary>
@@ -33,17 +30,14 @@ namespace SpecflowCore.Tests.POM
         public static IReadOnlyCollection<IWebElement> FindElements(
             this IWebDriver driver,
             By locator,
-            By? searchContext = null)
+            IWebElement? searchContext = null)
         {
             if (searchContext == null)
             {
-                // Uses driver.FindElements directly because this is our base implementation
                 return driver.FindElements(locator);
             }
 
-            // Uses context.FindElements directly because this is our base implementation
-            var context = driver.FindElement(searchContext);
-            return context.FindElements(locator);
+            return searchContext.FindElements(locator);
         }
 
         /// <summary>
@@ -52,9 +46,8 @@ namespace SpecflowCore.Tests.POM
         public static string? GetText(
             this IWebDriver driver,
             By locator,
-            By? searchContext = null)
+            IWebElement? searchContext = null)
         {
-            // Uses our extension method for consistency
             var element = driver.FindElement(locator, searchContext);
             return element?.Text;
         }
@@ -65,10 +58,10 @@ namespace SpecflowCore.Tests.POM
         public static bool ClickLinkWithText(
             this IWebDriver driver,
             string linkText,
-            By? searchContext = null)
+            IWebElement? searchContext = null)
         {
-            // Uses our extension method for consistency
-            var links = driver.FindElements(By.TagName("a"), searchContext);
+            var container = searchContext ?? driver.FindElement(By.TagName("body"));
+            var links = container.FindElements(By.TagName("a"));
             var link = links.FirstOrDefault(l => l.Text.Contains(linkText));
 
             if (link == null)
@@ -88,10 +81,10 @@ namespace SpecflowCore.Tests.POM
         public static bool ClickLinkContainingText(
             this IWebDriver driver,
             string partialText,
-            By? searchContext = null)
+            IWebElement? searchContext = null)
         {
-            // Uses our extension method for consistency
-            var links = driver.FindElements(By.TagName("a"), searchContext);
+            var container = searchContext ?? driver.FindElement(By.TagName("body"));
+            var links = container.FindElements(By.TagName("a"));
             var link = links.FirstOrDefault(l => l.Text.Contains(partialText));
 
             if (link == null)
@@ -108,7 +101,10 @@ namespace SpecflowCore.Tests.POM
         /// <summary>
         /// Clicks an element if it exists
         /// </summary>
-        public static void Click(this IWebDriver driver, By locator, By? searchContext = null)
+        public static void Click(
+            this IWebDriver driver,
+            By locator,
+            IWebElement? searchContext = null)
         {
             try
             {
@@ -129,7 +125,11 @@ namespace SpecflowCore.Tests.POM
         /// <summary>
         /// Types text into an element if it exists
         /// </summary>
-        public static void Type(this IWebDriver driver, By locator, string text, By? searchContext = null)
+        public static void Type(
+            this IWebDriver driver,
+            By locator,
+            string text,
+            IWebElement? searchContext = null)
         {
             try
             {

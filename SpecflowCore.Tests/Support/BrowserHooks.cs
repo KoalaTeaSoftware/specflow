@@ -19,14 +19,18 @@ namespace SpecflowCore.Tests.Support
         [AfterScenario(Order = 1)]
         public void AfterScenario()
         {
-            try
+            // Only reset browser if the scenario requires a fresh browser
+            if (_scenarioContext.ScenarioInfo.Tags.Contains("reset_browser"))
             {
-                BrowserContext.Instance.Reset();
-                Console.WriteLine("WebDriver reset successfully");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Failed to reset WebDriver: {ex.Message}");
+                try
+                {
+                    BrowserContext.Instance.Reset();
+                    Console.WriteLine("WebDriver reset successfully");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to reset WebDriver: {ex.Message}");
+                }
             }
         }
 

@@ -23,18 +23,19 @@ namespace SpecflowCore.Tests.POM
         public static IWebElement WaitForElement(
             this IWebDriver driver,
             By locator,
-            By? searchContext = null,
+            IWebElement? searchContext = null,
             int timeoutSeconds = TestConfiguration.Timeouts.DefaultWaitSeconds)
         {
             var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(timeoutSeconds));
             try
             {
-                return wait.Until(d => d.FindElement(locator, searchContext));
+                return wait.Until(d => searchContext != null ? searchContext.FindElement(locator) : d.FindElement(locator));
             }
             catch (WebDriverTimeoutException)
             {
                 var path = BrowserContext.Instance.CaptureFailureScreenshot($"element_not_found_{locator.ToString().Replace('/', '_')}");
-                TestContext.WriteLine($"Timeout waiting for element '{locator}' within parent context '{searchContext ?? BasePageLocators.Elements.DefaultContext}'. Screenshot: {path}");
+                var contextDescription = searchContext != null ? "provided element context" : "page context";
+                TestContext.WriteLine($"Timeout waiting for element '{locator}' within {contextDescription}. Screenshot: {path}");
                 return null;
             }
         }
@@ -47,7 +48,7 @@ namespace SpecflowCore.Tests.POM
             this IWebDriver driver,
             By locator,
             string expectedText,
-            By? searchContext = null,
+            IWebElement? searchContext = null,
             int timeoutSeconds = TestConfiguration.Timeouts.DefaultWaitSeconds)
         {
             var element = WaitForElement(driver, locator, searchContext, timeoutSeconds);

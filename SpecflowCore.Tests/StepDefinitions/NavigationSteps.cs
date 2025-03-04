@@ -12,6 +12,7 @@ using SpecflowCore.Tests.Fixtures;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 using System.IO;
+using NUnit.Framework;
 
 namespace SpecflowCore.Tests.StepDefinitions
 {
@@ -32,7 +33,7 @@ namespace SpecflowCore.Tests.StepDefinitions
             return _driver.Url.TrimEnd('/') == TestConfiguration.Urls.BaseUrl.TrimEnd('/');
         }
 
-        private bool ValidateLink(IWebElement link)
+        private bool CheckLink(IWebElement link)
         {
             string href = link.GetAttribute("href");
             string currentUrl = _driver.Url;
@@ -60,7 +61,7 @@ namespace SpecflowCore.Tests.StepDefinitions
             return false;
         }
 
-        private async Task<bool> ValidateLinkUrl(string url)
+        private async Task<bool> CheckLinkUrl(string url)
         {
             try
             {
@@ -74,7 +75,7 @@ namespace SpecflowCore.Tests.StepDefinitions
             }
         }
 
-        private bool ValidateLinkAndHeading(IWebElement link, string expectedHeading)
+        private bool CheckLinkAndHeading(IWebElement link, string expectedHeading)
         {
             string href = link.GetAttribute("href");
             if (string.IsNullOrEmpty(href))
@@ -88,7 +89,7 @@ namespace SpecflowCore.Tests.StepDefinitions
                 // Already on home page, verify heading
                 try
                 {
-                    var heading = _driver.FindElement(By.CssSelector("h1, h2, h3, h4, h5, h6"));
+                    var heading = link.FindElement(By.CssSelector("h1, h2, h3, h4, h5, h6"));
                     var headingMatches = heading.Text.Contains(expectedHeading, StringComparison.OrdinalIgnoreCase);
                     if (!headingMatches)
                     {
@@ -109,7 +110,7 @@ namespace SpecflowCore.Tests.StepDefinitions
 
             try
             {
-                var heading = _driver.FindElement(By.CssSelector("h1, h2, h3, h4, h5, h6"));
+                var heading = link.FindElement(By.CssSelector("h1, h2, h3, h4, h5, h6"));
                 var headingMatches = heading.Text.Contains(expectedHeading, StringComparison.OrdinalIgnoreCase);
                 if (!headingMatches)
                 {
@@ -130,10 +131,10 @@ namespace SpecflowCore.Tests.StepDefinitions
         {
             // Wait for navigation bar to be present
             var navBar = _driver.WaitForElement(MainNavigationLocators.MainNav);
-            navBar.Should().NotBeNull("Navigation bar should be present");
+            Assert.That(navBar, Is.Not.Null, $"Unable to find element with locator {MainNavigationLocators.MainNav}");
 
-            // Uses our extension method for consistency
-            var links = _driver.FindElements(MainNavigationLocators.Links, MainNavigationLocators.MainNav)
+            // Find links within the navigation bar context
+            var links = navBar.FindElements(MainNavigationLocators.Links)
                              .Where(l => !string.IsNullOrEmpty(l.Text))
                              .ToList();
             var actualLinkTexts = links.Select(l => l.Text.Trim()).ToList();
@@ -167,14 +168,15 @@ namespace SpecflowCore.Tests.StepDefinitions
         [Then(@"all main navigation links work")]
         public void ThenAllMainNavigationLinksWork()
         {
-            var mainNav = _driver.FindElement(MainNavigationLocators.MainNav);
+            var mainNav = _driver.WaitForElement(MainNavigationLocators.MainNav);
+            Assert.That(mainNav, Is.Not.Null, $"Unable to find element with locator {MainNavigationLocators.MainNav}");
+
             var links = mainNav.FindElements(MainNavigationLocators.Links);
-            
             var brokenLinks = new List<string>();
-            
+
             foreach (var link in links)
             {
-                if (!ValidateLink(link))
+                if (!CheckLink(link))
                 {
                     brokenLinks.Add(link.Text);
                 }
@@ -182,40 +184,27 @@ namespace SpecflowCore.Tests.StepDefinitions
 
             if (brokenLinks.Any())
             {
-                throw new Exception($"Navigation link check failed:\nBroken links: [{string.Join(", ", brokenLinks)}]");
+                var path = BrowserContext.Instance.CaptureFailureScreenshot("broken_navigation_links");
+                throw new Exception($"Navigation verification failed:\nBroken links: [{string.Join(", ", brokenLinks)}]\nFailure screenshot: {path}");
             }
         }
 
-        [Then(@"all main navigation links return HTTP 200")]
-        public async Task ThenAllMainNavigationLinksReturnHttp200()
+        [Then(@"all main navigation links are accessible")]
+        public async Task ThenAllMainNavigationLinksAreAccessible()
         {
-            var mainNav = _driver.FindElement(MainNavigationLocators.MainNav);
-            var links = mainNav.FindElements(MainNavigationLocators.Links);
-            
-            var brokenLinks = new List<string>();
-            
-            foreach (var link in links)
-            {
-                string href = link.GetAttribute("href");
-                if (!string.IsNullOrEmpty(href))
-                {
-                    if (!await ValidateLinkUrl(href))
-                    {
-                        brokenLinks.Add($"{link.Text} ({href})");
-                    }
-                }
-            }
+            var mainNav = _driver.WaitForElement(MainNavigationLocators.MainNav);
+            Assert.That(mainNav, Is.Not.Null, $"Unable to find element with locator {MainNavigationLocators.MainNav}");
 
-            if (brokenLinks.Any())
-            {
-                throw new Exception($"Link check failed:\nBroken links: [{string.Join(", ", brokenLinks)}]");
-            }
+            var brokenLinks = await _driver.ListBrokenLinks(mainNav);
+            Assert.That(brokenLinks, Is.Empty, "Navigation contains broken links. Check test output for details.");
         }
 
         [Then(@"clicking main navigation links leads to correct pages:")]
         public void ThenClickingMainNavigationLinksLeadsToCorrectPages(Table navigationMap)
         {
-            var mainNav = _driver.FindElement(MainNavigationLocators.MainNav);
+            var mainNav = _driver.WaitForElement(MainNavigationLocators.MainNav);
+            Assert.That(mainNav, Is.Not.Null, "Navigation bar should be present");
+
             var links = mainNav.FindElements(MainNavigationLocators.Links);
 
             var failures = new List<string>();
@@ -234,7 +223,7 @@ namespace SpecflowCore.Tests.StepDefinitions
                     continue;
                 }
 
-                if (!ValidateLinkAndHeading(link, expectedHeading))
+                if (!CheckLinkAndHeading(link, expectedHeading))
                 {
                     failures.Add($"Link '{linkText}' did not lead to page with heading '{expectedHeading}'");
                 }
@@ -244,7 +233,7 @@ namespace SpecflowCore.Tests.StepDefinitions
                 System.Threading.Thread.Sleep(1000); // Wait for navigation
                 
                 // Re-find elements as the page has been reloaded
-                mainNav = _driver.FindElement(MainNavigationLocators.MainNav);
+                mainNav = _driver.WaitForElement(MainNavigationLocators.MainNav);
                 links = mainNav.FindElements(MainNavigationLocators.Links);
             }
 
