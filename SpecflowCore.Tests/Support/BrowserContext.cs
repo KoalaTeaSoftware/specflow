@@ -12,6 +12,7 @@ namespace SpecflowCore.Tests.Support
     {
         private static BrowserContext _instance;
         private static readonly object Lock = new object();
+        private bool _disposed;
 
         private BrowserContext()
         {
@@ -40,12 +41,20 @@ namespace SpecflowCore.Tests.Support
 
         public void Reset()
         {
-            Driver?.Quit();
-            Driver = WebDriverFactory.CreateDriver();
+            if (!_disposed)
+            {
+                Driver?.Quit();
+                Driver = WebDriverFactory.CreateDriver();
+            }
         }
 
         public string CaptureFailureScreenshot(string failureContext)
         {
+            if (_disposed)
+            {
+                return string.Empty;
+            }
+
             var screenshot = ((ITakesScreenshot)Driver).GetScreenshot();
             var fileName = $"{failureContext}_{DateTime.Now:yyyyMMdd_HHmmss}.png";
             var path = Path.Combine(TestRunContext.ScreenshotsPath, fileName);
@@ -56,10 +65,14 @@ namespace SpecflowCore.Tests.Support
 
         public void Dispose()
         {
-            Driver?.Quit();
-            Driver?.Dispose();
-            Driver = null;
-            _instance = null;
+            if (!_disposed)
+            {
+                _disposed = true;
+                Driver?.Quit();
+                Driver?.Dispose();
+                Driver = null;
+                _instance = null;
+            }
         }
     }
 }

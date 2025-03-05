@@ -8,15 +8,26 @@ namespace SpecflowCore.Tests.POM
     /// Provides high-level page interaction methods that combine multiple basic actions.
     /// These methods represent common workflows and complex interactions.
     /// </summary>
-    public static class BasePageActions
+    public class BasePageActions
     {
+        private readonly IWebDriver _driver;
+
+        public BasePageActions(IWebDriver driver)
+        {
+            _driver = driver;
+        }
+
         /// <summary>
         /// Verifies that a page's main heading matches expected text
         /// </summary>
         /// <returns>True if heading matches, false otherwise</returns>
-        public static bool VerifyMainHeading(this IWebDriver driver, string expectedText)
+        public bool VerifyHeading(string expectedText)
         {
-            var heading = driver.WaitForElementToHaveText(BasePageLocators.Elements.MainHeading, expectedText);
+            var heading = _driver.BaseWaitForElementToHaveText(
+                BasePageLocators.Elements.MainHeading,
+                expectedText,
+                timeoutSeconds: TestConfiguration.Timeouts.DefaultWaitSeconds
+            );
             return heading != null;
         }
 
@@ -24,10 +35,10 @@ namespace SpecflowCore.Tests.POM
         /// Gets the current main heading text
         /// </summary>
         /// <returns>The heading text or null if not found</returns>
-        public static string GetMainHeadingText(this IWebDriver driver)
+        public string GetHeadingText()
         {
-            var heading = driver.FindElement(BasePageLocators.Elements.MainHeading);
-            return heading?.Text;
+            var heading = _driver.BaseFindElement(BasePageLocators.Elements.MainHeading);
+            return heading?.Text?.Trim() ?? string.Empty;
         }
     }
 }

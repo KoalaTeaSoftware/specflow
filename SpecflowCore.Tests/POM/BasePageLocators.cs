@@ -6,32 +6,30 @@ namespace SpecflowCore.Tests.POM
     /// Base class containing common element definitions and properties used across all pages.
     /// Centralizes the locator strategies for common elements.
     /// </summary>
-    public static class BasePageLocators
+    public class BasePageLocators
     {
+        private readonly IWebDriver _driver;
+
         /// <summary>
-        /// Common element locators used across pages
+        /// Initializes a new instance of the <see cref="BasePageLocators"/> class.
         /// </summary>
+        /// <param name="driver">The Selenium WebDriver instance.</param>
+        public BasePageLocators(IWebDriver driver)
+        {
+            _driver = driver;
+        }
+
+        // Static elements for consistent access
         public static class Elements
         {
-            /// <summary>
-            /// Default search context for element location operations
-            /// </summary>
-            public static readonly By DefaultContext = By.TagName("body");
+            // Primary content container - using ID as required
+            public static readonly By MainContent = By.Id("pageContents");
 
-            /// <summary>
-            /// Main heading of the page. Using h1 by default, but can be changed if site uses different heading hierarchy
-            /// </summary>
-            public static readonly By MainHeading = By.CssSelector("h1");
+            // Main heading - using CSS selector since h1 is unique per page
+            public static readonly By MainHeading = By.CssSelector("#pageContents h1");
 
-            /// <summary>
-            /// Main navigation menu
-            /// </summary>
-            public static readonly By MainNav = By.CssSelector("nav.main-nav");
-
-            /// <summary>
-            /// Footer section
-            /// </summary>
-            public static readonly By Footer = By.TagName("footer");
-        }
+            // Default context for searches - using ID as required
+            public static readonly By DefaultContext = By.Id("pageContents");
+        }            
     }
 }

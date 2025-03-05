@@ -15,7 +15,11 @@ namespace SpecflowCore.Tests.Support
             options.AddArgument("--start-maximized");
             options.AddArgument("--window-size=1920,1080");
             
-            return new ChromeDriver(options);
+            var service = ChromeDriverService.CreateDefaultService();
+            service.EnableVerboseLogging = false;
+            service.SuppressInitialDiagnosticInformation = true;
+            
+            return new ChromeDriver(service, options);
         }
     }
 }
